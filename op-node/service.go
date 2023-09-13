@@ -191,6 +191,10 @@ Conflicting configuration is deprecated, and will stop the op-node from starting
 		if err != nil {
 			return nil, err
 		}
+		if ctx.IsSet(flags.MeadowOverrideFlag.Name) {
+			meadow := ctx.Uint64(flags.MeadowOverrideFlag.Name)
+			config.MeadowTime = &meadow
+		}
 
 		return config, nil
 	}
@@ -204,6 +208,10 @@ Conflicting configuration is deprecated, and will stop the op-node from starting
 	var rollupConfig rollup.Config
 	if err := json.NewDecoder(file).Decode(&rollupConfig); err != nil {
 		return nil, fmt.Errorf("failed to decode rollup config: %w", err)
+	}
+	if ctx.IsSet(flags.MeadowOverrideFlag.Name) {
+		meadow := ctx.Uint64(flags.MeadowOverrideFlag.Name)
+		rollupConfig.MeadowTime = &meadow
 	}
 	return &rollupConfig, nil
 }

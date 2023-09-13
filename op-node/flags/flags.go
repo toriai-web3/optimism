@@ -244,6 +244,12 @@ var (
 		EnvVars: prefixEnvVars("BETA_EXTRA_NETWORKS"),
 		Hidden:  true,
 	}
+	MeadowOverrideFlag = &cli.Uint64Flag{
+		Name:    "override.meadow",
+		Usage:   "Manually specify the Meadow fork timestamp, overriding the bundled setting",
+		EnvVars: prefixEnvVars("OVERRIDE_MEADOW"),
+		Hidden:  true,
+	}
 )
 
 var requiredFlags = []cli.Flag{
@@ -286,6 +292,7 @@ var optionalFlags = []cli.Flag{
 	L2EngineSyncEnabled,
 	SkipSyncStartCheck,
 	BetaExtraNetworks,
+	MeadowOverrideFlag,
 }
 
 // Flags contains the list of configuration options available to the binary.
