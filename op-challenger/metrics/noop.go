@@ -22,3 +22,5 @@ func (*NoopMetricsImpl) RecordGamesStatus(inProgress, defenderWon, challengerWon
 
 func (*NoopMetricsImpl) RecordGameUpdateScheduled() {}
 func (*NoopMetricsImpl) RecordGameUpdateCompleted() {}
+
+func (*NoopMetricsImpl) RecordGameClaimCount(addr string, count int) {}
