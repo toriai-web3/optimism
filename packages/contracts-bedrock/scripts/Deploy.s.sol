@@ -108,22 +108,20 @@ contract Deploy is Deployer {
         }
     }
 
-    function _isDevnet() internal returns (bool _devnet) {
-        uint256 chainid = block.chainid;
-        if (chainid == Chains.LocalDevnet || chainid == Chains.GethDevnet) {
-            _devnet = true;
-        }
-    }
-
     /// @notice Modifier that will only allow a function to be called on a public
     ///         testnet or devnet.
     modifier onlyTestnetOrDevnet() {
         uint256 chainid = block.chainid;
-        if (
-            chainid == Chains.Goerli || chainid == Chains.Sepolia || chainid == Chains.LocalDevnet
-                || chainid == Chains.GethDevnet
-        ) {
+        if (chainid == Chains.Goerli || chainid == Chains.Sepolia || _isDevnet() == true) {
             _;
+        }
+    }
+
+    /// @notice Function for determining if execution is occuring on a testnet or devnet.
+    function _isDevnet() internal view returns (bool _devnet) {
+        uint256 chainid = block.chainid;
+        if (chainid == Chains.LocalDevnet || chainid == Chains.GethDevnet || chainid == Chains.Hardhat) {
+            _devnet = true;
         }
     }
 
@@ -572,9 +570,7 @@ contract Deploy is Deployer {
     }
 
     function _upgradeAndCallViaSafe(address _proxy, address _implementation, bytes memory _innerCallData) internal {
-        Safe safe = Safe(mustGetAddress("Safe"));
         address proxyAdmin = mustGetAddress("ProxyAdmin");
-
         bytes memory data =
             abi.encodeCall(ProxyAdmin.upgradeAndCall, (payable(_proxy), _implementation, _innerCallData));
 
