@@ -2,7 +2,6 @@ package op_e2e
 
 import (
 	"context"
-	"os"
 	"testing"
 	"time"
 
@@ -13,7 +12,6 @@ import (
 	"github.com/ethereum-optimism/optimism/op-e2e/e2eutils/wait"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/ethereum/go-ethereum/log"
 	"github.com/stretchr/testify/require"
 )
 
@@ -187,9 +185,6 @@ func TestChallengerCompleteExhaustiveDisputeGame(t *testing.T) {
 	InitParallel(t)
 
 	testCase := func(t *testing.T, isRootCorrect bool) {
-		// TODO(inphi): DEBUGME
-		log.Root().SetHandler(log.LvlFilterHandler(log.LvlDebug, log.StreamHandler(os.Stdout, log.TerminalFormat(true))))
-
 		ctx := context.Background()
 		sys, l1Client := startFaultDisputeSystem(t)
 		t.Cleanup(sys.Close)
