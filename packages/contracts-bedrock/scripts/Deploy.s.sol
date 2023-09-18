@@ -600,6 +600,7 @@ contract Deploy is Deployer {
     function initializeSystemConfig() public broadcast {
         address systemConfigProxy = mustGetAddress("SystemConfigProxy");
         address systemConfig = mustGetAddress("SystemConfig");
+        address safe = mustGetAddress("Safe");
 
         bytes32 batcherHash = bytes32(uint256(uint160(cfg.batchSenderAddress())));
         uint256 startBlock = cfg.systemConfigStartBlock();
@@ -610,7 +611,7 @@ contract Deploy is Deployer {
             _innerCallData: abi.encodeCall(
                 SystemConfig.initialize,
                 (
-                    cfg.finalSystemOwner(),
+                    safe,
                     cfg.gasPriceOracleOverhead(),
                     cfg.gasPriceOracleScalar(),
                     batcherHash,
@@ -635,7 +636,7 @@ contract Deploy is Deployer {
         string memory version = config.version();
         console.log("SystemConfig version: %s", version);
 
-        require(config.owner() == cfg.finalSystemOwner());
+        require(config.owner() == safe);
         require(config.overhead() == cfg.gasPriceOracleOverhead());
         require(config.scalar() == cfg.gasPriceOracleScalar());
         require(config.unsafeBlockSigner() == cfg.p2pSequencerAddress());
