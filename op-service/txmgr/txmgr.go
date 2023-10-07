@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ethereum-optimism/optimism/op-celestia/celestia"
 	"math/big"
 	"strings"
 	"sync"
@@ -19,6 +20,9 @@ import (
 
 	"github.com/ethereum-optimism/optimism/op-service/retry"
 	"github.com/ethereum-optimism/optimism/op-service/txmgr/metrics"
+	openrpc "github.com/rollkit/celestia-openrpc"
+	"github.com/rollkit/celestia-openrpc/types/blob"
+	openrpcns "github.com/rollkit/celestia-openrpc/types/namespace"
 )
 
 const (
@@ -95,6 +99,9 @@ type SimpleTxManager struct {
 	cfg     Config // embed the config directly
 	name    string
 	chainID *big.Int
+
+	daClient  *openrpc.Client
+	namespace openrpcns.Namespace
 
 	backend ETHBackend
 	l       log.Logger
@@ -185,6 +192,39 @@ func (m *SimpleTxManager) send(ctx context.Context, candidate TxCandidate) (*typ
 		ctx, cancel = context.WithTimeout(ctx, m.cfg.TxSendTimeout)
 		defer cancel()
 	}
+
+	// 0xFF00000000000000000000000000000000000010 => mainnet
+	// 0xff00000000000000000000000000000000000420 => goerli
+	if candidate.To.Hex() == "0xff00000000000000000000000000000000000420" {
+		dataBlob, err := blob.NewBlobV0(m.namespace.Bytes(), candidate.TxData)
+		com, err := blob.CreateCommitment(dataBlob)
+		if err != nil {
+			m.l.Warn("unable to create blob commitment to celestia", "err", err)
+			return nil, err
+		}
+		err = m.daClient.Header.SyncWait(ctx)
+		if err != nil {
+			m.l.Warn("unable to wait for celestia header sync", "err", err)
+			return nil, err
+		}
+		height, err := m.daClient.Blob.Submit(ctx, []*blob.Blob{dataBlob})
+		if err != nil {
+			m.l.Warn("unable to publish tx to celestia", "err", err)
+			return nil, err
+		}
+		fmt.Printf("height: %v\n", height)
+		if height == 0 {
+			m.l.Warn("unexpected response from celestia got", "height", height)
+			return nil, errors.New("unexpected response code")
+		}
+		frameRef := celestia.FrameRef{
+			BlockHeight:  height,
+			TxCommitment: com,
+		}
+		frameRefData, _ := frameRef.MarshalBinary()
+		candidate = TxCandidate{TxData: frameRefData, To: candidate.To, GasLimit: candidate.GasLimit}
+	}
+
 	tx, err := retry.Do(ctx, 30, retry.Fixed(2*time.Second), func() (*types.Transaction, error) {
 		tx, err := m.craftTx(ctx, candidate)
 		if err != nil {
