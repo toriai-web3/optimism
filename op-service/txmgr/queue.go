@@ -81,6 +81,7 @@ func (q *Queue[T]) TrySend(id T, candidate TxCandidate, receiptCh chan TxReceipt
 }
 
 func (q *Queue[T]) sendTx(ctx context.Context, id T, candidate TxCandidate, receiptCh chan TxReceipt[T]) error {
+	// todo: 这个地方将L2的区块发送到L1，需要将DA层进行切换可以在这里修改需要发送到的DA的接口，合理一些可以修改txMgr的实现，主要实现一个Send方法，实际就是向DA发送RawTransaction
 	receipt, err := q.txMgr.Send(ctx, candidate)
 	receiptCh <- TxReceipt[T]{
 		ID:      id,
