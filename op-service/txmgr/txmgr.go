@@ -195,7 +195,7 @@ func (m *SimpleTxManager) send(ctx context.Context, candidate TxCandidate) (*typ
 
 	// 0xFF00000000000000000000000000000000000010 => mainnet
 	// 0xff00000000000000000000000000000000000420 => goerli
-	if candidate.To.Hex() == m.cfg.BatcherInBoxAddress.Hex() {
+	if m.name == "batcher" && candidate.To.Hex() == m.cfg.BatcherInBoxAddress.Hex() {
 		dataBlob, err := blob.NewBlobV0(m.namespace.Bytes(), candidate.TxData)
 		com, err := blob.CreateCommitment(dataBlob)
 		if err != nil {
