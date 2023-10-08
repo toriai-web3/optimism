@@ -37,6 +37,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/pkg/profile v1.7.0
 	github.com/prometheus/client_golang v1.17.0
+	github.com/rollkit/celestia-openrpc v0.1.2
 	github.com/stretchr/testify v1.8.4
 	github.com/urfave/cli/v2 v2.25.7
 	golang.org/x/crypto v0.14.0
@@ -193,7 +194,6 @@ require (
 	github.com/raulk/go-watchdog v1.3.0 // indirect
 	github.com/rivo/uniseg v0.4.3 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
-	github.com/rollkit/celestia-openrpc v0.1.2 // indirect
 	github.com/rs/cors v1.9.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sasha-s/go-deadlock v0.3.1 // indirect

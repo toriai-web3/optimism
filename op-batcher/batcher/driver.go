@@ -65,11 +65,13 @@ func NewBatchSubmitterFromCLIConfig(cfg CLIConfig, l log.Logger, m metrics.Metri
 		return nil, err
 	}
 
+	// get rollup config from rollup node
 	rcfg, err := rollupClient.RollupConfig(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("querying rollup config: %w", err)
 	}
 
+	cfg.TxMgrConfig.BatcherInBoxAddress = rcfg.BatchInboxAddress
 	txManager, err := txmgr.NewSimpleTxManager("batcher", l, m, cfg.TxMgrConfig)
 	if err != nil {
 		return nil, err
