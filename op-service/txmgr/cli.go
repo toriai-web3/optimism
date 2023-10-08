@@ -163,6 +163,7 @@ type CLIConfig struct {
 	NetworkTimeout            time.Duration
 	TxSendTimeout             time.Duration
 	TxNotInMempoolTimeout     time.Duration
+	BatcherInBoxAddress       common.Address
 }
 
 func NewCLIConfig(l1RPCURL string, defaults DefaultFlagValues) CLIConfig {
@@ -270,6 +271,7 @@ func NewConfig(cfg CLIConfig, l log.Logger) (Config, error) {
 		SafeAbortNonceTooLowCount: cfg.SafeAbortNonceTooLowCount,
 		Signer:                    signerFactory(chainID),
 		From:                      from,
+		BatcherInBoxAddress: 	   cfg.BatcherInBoxAddress,
 	}, nil
 }
 
@@ -314,6 +316,7 @@ type Config struct {
 	// Signer is used to sign transactions when the gas price is increased.
 	Signer opcrypto.SignerFn
 	From   common.Address
+	BatcherInBoxAddress common.Address
 }
 
 func (m Config) Check() error {
