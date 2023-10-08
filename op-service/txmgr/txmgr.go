@@ -2,9 +2,11 @@ package txmgr
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/ethereum-optimism/optimism/op-celestia/celestia"
+	"github.com/rollkit/celestia-openrpc/types/share"
 	"math/big"
 	"strings"
 	"sync"
@@ -127,13 +129,35 @@ func NewSimpleTxManagerFromConfig(name string, l log.Logger, m metrics.TxMetrice
 	if err := conf.Check(); err != nil {
 		return nil, fmt.Errorf("invalid config: %w", err)
 	}
+
+	// Create celestia client
+	daClient, err := openrpc.NewClient(context.Background(), conf.DARPC, conf.AuthToken)
+	if err != nil {
+		return nil, err
+	}
+
+	if conf.NamespaceId == "" {
+		return nil, errors.New("namespace id cannot be blank")
+	}
+	nsBytes, err := hex.DecodeString(conf.NamespaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	namespace, err := share.NewBlobNamespaceV0(nsBytes)
+	if err != nil {
+		return nil, err
+	}
+
 	return &SimpleTxManager{
-		chainID: conf.ChainID,
-		name:    name,
-		cfg:     conf,
-		backend: conf.Backend,
-		l:       l.New("service", name),
-		metr:    m,
+		chainID:   conf.ChainID,
+		name:      name,
+		cfg:       conf,
+		backend:   conf.Backend,
+		l:         l.New("service", name),
+		metr:      m,
+		daClient:  daClient,
+		namespace: namespace.ToAppNamespace(),
 	}, nil
 }
 
