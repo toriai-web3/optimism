@@ -130,23 +130,28 @@ func NewSimpleTxManagerFromConfig(name string, l log.Logger, m metrics.TxMetrice
 		return nil, fmt.Errorf("invalid config: %w", err)
 	}
 
-	// Create celestia client
-	daClient, err := openrpc.NewClient(context.Background(), conf.DARPC, conf.AuthToken)
-	if err != nil {
-		return nil, err
-	}
+	var daClient *openrpc.Client
+	var namespace share.Namespace
+	if conf.DARPC != "" {
+		var err error
+		// Create celestia client
+		daClient, err = openrpc.NewClient(context.Background(), conf.DARPC, conf.AuthToken)
+		if err != nil {
+			return nil, err
+		}
 
-	if conf.NamespaceId == "" {
-		return nil, errors.New("namespace id cannot be blank")
-	}
-	nsBytes, err := hex.DecodeString(conf.NamespaceId)
-	if err != nil {
-		return nil, err
-	}
+		if conf.NamespaceId == "" {
+			return nil, errors.New("namespace id cannot be blank")
+		}
+		nsBytes, err := hex.DecodeString(conf.NamespaceId)
+		if err != nil {
+			return nil, err
+		}
 
-	namespace, err := share.NewBlobNamespaceV0(nsBytes)
-	if err != nil {
-		return nil, err
+		namespace, err = share.NewBlobNamespaceV0(nsBytes)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &SimpleTxManager{
@@ -219,7 +224,7 @@ func (m *SimpleTxManager) send(ctx context.Context, candidate TxCandidate) (*typ
 
 	// 0xFF00000000000000000000000000000000000010 => mainnet
 	// 0xff00000000000000000000000000000000000420 => goerli
-	if m.name == "batcher" && candidate.To.Hex() == m.cfg.BatcherInBoxAddress.Hex() {
+	if m.name == "batcher" && m.daClient != nil && candidate.To.Hex() == m.cfg.BatcherInBoxAddress.Hex() {
 		dataBlob, err := blob.NewBlobV0(m.namespace.Bytes(), candidate.TxData)
 		com, err := blob.CreateCommitment(dataBlob)
 		if err != nil {
