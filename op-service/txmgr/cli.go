@@ -31,6 +31,9 @@ const (
 	TxSendTimeoutFlagName             = "txmgr.send-timeout"
 	TxNotInMempoolTimeoutFlagName     = "txmgr.not-in-mempool-timeout"
 	ReceiptQueryIntervalFlagName      = "txmgr.receipt-query-interval"
+	CelestiaNsFlagName                = "celestia-ns"
+	CelestiaRpcFlagName               = "celestia-rpc"
+	CelestiaAuthTokenFlagName         = "celestia-auth-token"
 )
 
 var (
@@ -45,6 +48,21 @@ var (
 		Usage: "DEPRECATED:The HD path used to derive the l2output wallet from the " +
 			"mnemonic. The mnemonic flag must also be set.",
 		EnvVars: []string{"OP_PROPOSER_L2_OUTPUT_HD_PATH"},
+	}
+	CelestiaNsFlag = &cli.StringFlag{
+		Name:    "celestia-ns",
+		Usage:   "Celestia namespace id",
+		EnvVars: []string{"CELESTIA_NS"},
+	}
+	CelestiaRpcFlag = &cli.StringFlag{
+		Name:    "celestia-rpc",
+		Usage:   "Celestia rpc url",
+		EnvVars: []string{"CELESTIA_RPC"},
+	}
+	CelestiaAuthTokenFlag = &cli.StringFlag{
+		Name:    "celestia-auth-token",
+		Usage:   "Celestia auth token",
+		EnvVars: []string{"CELESTIA_AUTH_TOKEN"},
 	}
 )
 
@@ -164,6 +182,9 @@ type CLIConfig struct {
 	TxSendTimeout             time.Duration
 	TxNotInMempoolTimeout     time.Duration
 	BatcherInBoxAddress       common.Address
+	CelestiaNs                string
+	CelestiaRpc               string
+	CelestiaAuthToken         string
 }
 
 func NewCLIConfig(l1RPCURL string, defaults DefaultFlagValues) CLIConfig {
@@ -205,6 +226,14 @@ func (m CLIConfig) Check() error {
 	if err := m.SignerCLIConfig.Check(); err != nil {
 		return err
 	}
+	if m.CelestiaRpc != "" {
+		if m.CelestiaNs == "" {
+			return errors.New("must provide CelestiaNs")
+		}
+		if m.CelestiaAuthToken == "" {
+			return errors.New("must provide CelestiaAuthToken")
+		}
+	}
 	return nil
 }
 
@@ -224,6 +253,9 @@ func ReadCLIConfig(ctx *cli.Context) CLIConfig {
 		NetworkTimeout:            ctx.Duration(NetworkTimeoutFlagName),
 		TxSendTimeout:             ctx.Duration(TxSendTimeoutFlagName),
 		TxNotInMempoolTimeout:     ctx.Duration(TxNotInMempoolTimeoutFlagName),
+		CelestiaNs:                ctx.String(CelestiaNsFlagName),
+		CelestiaRpc:               ctx.String(CelestiaRpcFlagName),
+		CelestiaAuthToken:         ctx.String(CelestiaAuthTokenFlagName),
 	}
 }
 
@@ -272,6 +304,9 @@ func NewConfig(cfg CLIConfig, l log.Logger) (Config, error) {
 		Signer:                    signerFactory(chainID),
 		From:                      from,
 		BatcherInBoxAddress:       cfg.BatcherInBoxAddress,
+		NamespaceId:               cfg.CelestiaNs,
+		DARPC:                     cfg.CelestiaRpc,
+		AuthToken:                 cfg.CelestiaAuthToken,
 	}, nil
 }
 
@@ -353,6 +388,14 @@ func (m Config) Check() error {
 	}
 	if m.ChainID == nil {
 		return errors.New("must provide the ChainID")
+	}
+	if m.DARPC != "" {
+		if m.NamespaceId == "" {
+			return errors.New("must provide NamespaceId")
+		}
+		if m.AuthToken == "" {
+			return errors.New("must provide AuthToken")
+		}
 	}
 	return nil
 }

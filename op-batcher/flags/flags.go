@@ -78,6 +78,10 @@ var (
 	}
 	// Legacy Flags
 	SequencerHDPathFlag = txmgr.SequencerHDPathFlag
+	// Other DA Flags
+	CelestiaNsFlag = txmgr.CelestiaNsFlag
+	CelestiaRpcFlag = txmgr.CelestiaRpcFlag
+	CelestiaAuthTokenFlag = txmgr.CelestiaAuthTokenFlag
 )
 
 var requiredFlags = []cli.Flag{
@@ -94,6 +98,9 @@ var optionalFlags = []cli.Flag{
 	MaxL1TxSizeBytesFlag,
 	StoppedFlag,
 	SequencerHDPathFlag,
+	CelestiaNsFlag,
+	CelestiaRpcFlag,
+	CelestiaAuthTokenFlag,
 }
 
 func init() {
