@@ -24,6 +24,7 @@ import (
 	"github.com/ethereum-optimism/optimism/op-service/txmgr/metrics"
 	openrpc "github.com/rollkit/celestia-openrpc"
 	"github.com/rollkit/celestia-openrpc/types/blob"
+	appns "github.com/rollkit/celestia-openrpc/types/namespace"
 	openrpcns "github.com/rollkit/celestia-openrpc/types/namespace"
 )
 
@@ -132,6 +133,7 @@ func NewSimpleTxManagerFromConfig(name string, l log.Logger, m metrics.TxMetrice
 
 	var daClient *openrpc.Client
 	var namespace share.Namespace
+	var appNs appns.Namespace
 	if conf.DARPC != "" {
 		var err error
 		// Create celestia client
@@ -152,6 +154,7 @@ func NewSimpleTxManagerFromConfig(name string, l log.Logger, m metrics.TxMetrice
 		if err != nil {
 			return nil, err
 		}
+		appNs = namespace.ToAppNamespace()
 	}
 
 	return &SimpleTxManager{
@@ -162,7 +165,7 @@ func NewSimpleTxManagerFromConfig(name string, l log.Logger, m metrics.TxMetrice
 		l:         l.New("service", name),
 		metr:      m,
 		daClient:  daClient,
-		namespace: namespace.ToAppNamespace(),
+		namespace: appNs,
 	}, nil
 }
 
